@@ -342,15 +342,16 @@ export default function UniversityDetailPage({ id }: UniversityDetailPageProps) 
 
 
   const tabs = [
-    { id: "about", label: "About University" },
-    { id: "programs", label: "Programs Offered" },
-    { id: "eligibility", label: "Eligibility" },
-    { id: "admission", label: "Admission Process" },
-    { id: "placements", label: "Placement & top recruiters" },
-    { id: "campuses", label: "Campuses" },
-    { id: "reviews", label: "Review & Ratings" },
-    { id: "faq", label: "FAQs" },
-  ];
+    { id: "about", label: "About University", show: true },
+    { id: "rankings", label: "Rankings", show: provider.rankings && provider.rankings.length > 0 },
+    { id: "programs", label: "Programs Offered", show: true },
+    { id: "eligibility", label: "Eligibility", show: true },
+    { id: "admission", label: "Admission Process", show: true },
+    { id: "placements", label: "Placement & recruiters", show: provider.placementPartners && provider.placementPartners.length > 0 },
+    { id: "campuses", label: "Campuses", show: provider.campuses && provider.campuses.length > 0 },
+    { id: "reviews", label: "Review & Ratings", show: true },
+    { id: "faq", label: "FAQs", show: provider.faq && provider.faq.length > 0 },
+  ].filter(tab => tab.show);
 
   const scrollToSection = (id: string) => {
     setActiveTab(id);
@@ -438,7 +439,7 @@ export default function UniversityDetailPage({ id }: UniversityDetailPageProps) 
             {provider.name}
           </h1>
           <p className="text-white/80 text-sm md:text-base mb-6 max-w-xl line-clamp-2 md:line-clamp-none font-medium">
-            {provider.shortExcerpt || "A premier institution offering high-quality education with a focus on innovation and excellence."}
+            {provider.coverDescription || provider.shortExcerpt || "A premier institution offering high-quality education with a focus on innovation and excellence."}
           </p>
         </div>
       </div>
@@ -575,6 +576,34 @@ export default function UniversityDetailPage({ id }: UniversityDetailPageProps) 
                 </div>
               </div>
             </section>
+
+            {/* Rankings Section */}
+            {(provider.rankings && provider.rankings.length > 0) && (
+              <section id="rankings" className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6 scroll-mt-[160px] md:scroll-mt-24">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 flex items-center justify-center rounded-lg text-purple-600">
+                    <Trophy className="w-5 h-5" color="#6366F1" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900">Rankings & Recognition</h2>
+                </div>
+                {provider.rankingsDescription && (
+                  <div className="text-gray-600 text-sm leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: provider.rankingsDescription }} />
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {provider.rankings.map((ranking, i) => (
+                    <div key={i} className="flex items-start gap-4 p-5 bg-gradient-to-br from-white to-purple-50/30 rounded-2xl border border-gray-100 hover:border-purple-200 transition-all group/ranking shadow-sm">
+                      <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-purple-100 text-purple-600 shrink-0 group-hover/ranking:bg-purple-600 group-hover/ranking:text-white transition-all duration-300">
+                        <Trophy className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-extrabold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{ranking.title}</h4>
+                        <p className="text-sm text-gray-500 font-medium leading-snug">{ranking.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Quick Overview Section */}
             <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">

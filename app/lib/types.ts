@@ -40,6 +40,7 @@ export interface Provider {
   slug: string;
   logo?: string;
   coverImage?: string;
+  coverDescription?: string;
   galleryImages?: string[];
   galleryDescription?: any;
   shortExcerpt?: string;

@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { SectionContent, Provider } from "@/app/lib/types";
 import SectionRenderer from "@/app/components/SectionRenderer";
 import SidebarFilters from "./SidebarFilters";
 import UniversityCard from "./UniversityCard";
+import UniversityCardSkeleton from "./UniversityCardSkeleton";
 
 interface UniversityPageProps {
   sections: SectionContent[];
   providers: Provider[];
 }
+
+const PAGE_SIZE = 9;
 
 export default function UniversityPage({ sections, providers }: UniversityPageProps) {
   const [selectedToCompare, setSelectedToCompare] = useState<string[]>([]);
@@ -20,6 +23,9 @@ export default function UniversityPage({ sections, providers }: UniversityPagePr
   const [filteredProviders, setFilteredProviders] = useState<Provider[]>(providers);
   const [selectedSort, setSelectedSort] = useState<string | null>(null);
   const [animKey, setAnimKey] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Load selection and shortlist from localStorage/API on mount
   useEffect(() => {
@@ -110,7 +116,38 @@ export default function UniversityPage({ sections, providers }: UniversityPagePr
 
     setFilteredProviders(filtered);
     setAnimKey(k => k + 1);
+    setVisibleCount(PAGE_SIZE);
+    setIsLoadingMore(false);
   }, [searchTerm, allowedProviderIds, providers, selectedSort]);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+    if (visibleCount >= filteredProviders.length) return;
+    if (isLoadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setIsLoadingMore(true);
+          window.setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredProviders.length));
+            setIsLoadingMore(false);
+          }, 600);
+        }
+      },
+      { rootMargin: "400px 0px" }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filteredProviders.length, visibleCount, isLoadingMore]);
+
+  const visibleProviders = filteredProviders.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProviders.length;
+  const skeletonCount = hasMore
+    ? Math.min(PAGE_SIZE, filteredProviders.length - visibleCount)
+    : 0;
 
   const handleFilterByCourse = (providerIds: string[] | null) => {
     setAllowedProviderIds(providerIds);
@@ -151,11 +188,11 @@ export default function UniversityPage({ sections, providers }: UniversityPagePr
           {/* Results Grid */}
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-              {filteredProviders.map((uni, index) => (
+              {visibleProviders.map((uni, index) => (
                 <div
                   key={`${uni._id}-${animKey}`}
                   className="animate-sort-in"
-                  style={{ animationDelay: `${index * 40}ms` }}
+                  style={{ animationDelay: `${(index % PAGE_SIZE) * 40}ms` }}
                 >
                   <UniversityCard
                     university={uni}
@@ -167,6 +204,11 @@ export default function UniversityPage({ sections, providers }: UniversityPagePr
                 </div>
               ))}
 
+              {isLoadingMore &&
+                Array.from({ length: skeletonCount }).map((_, i) => (
+                  <UniversityCardSkeleton key={`skeleton-${i}`} />
+                ))}
+
               {/* Placeholder cards if no providers yet to match screenshot exactly */}
               {filteredProviders.length === 0 && (
                 <div className="col-span-full py-20 text-center">
@@ -174,6 +216,14 @@ export default function UniversityPage({ sections, providers }: UniversityPagePr
                 </div>
               )}
             </div>
+
+            {hasMore && <div ref={sentinelRef} className="h-10" aria-hidden />}
+
+            {!hasMore && filteredProviders.length > PAGE_SIZE && (
+              <div className="py-10 text-center text-sm text-gray-400">
+                You&apos;ve reached the end.
+              </div>
+            )}
           </div>
         </div>
       </div>

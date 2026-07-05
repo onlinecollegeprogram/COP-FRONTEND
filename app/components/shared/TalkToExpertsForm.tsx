@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Phone, CheckCircle, Mail, Clock, ChevronDown, Shield } from "lucide-react";
-import { auth } from "@/app/lib/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
+import { Phone, Mail, Clock, ChevronDown, Shield } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface TalkToExpertsFormProps {
@@ -25,16 +23,11 @@ export default function TalkToExpertsForm({
     fullName: "",
     email: "",
     phoneNumber: "",
-    otp: "",
     programOfInterest: "",
     preferredTime: "",
     message: "",
   });
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   const [courseOptions, setCourseOptions] = useState<string[]>(programs);
 
@@ -231,77 +224,8 @@ export default function TalkToExpertsForm({
     fetchProfile();
   }, []);
 
-  const setupRecaptcha = () => {
-    const containerId = isHomePage ? 'recaptcha-s5' : 'recaptcha-container-shared';
-    if (!(window as any).recaptchaVerifierShared) {
-      try {
-        (window as any).recaptchaVerifierShared = new RecaptchaVerifier(auth, containerId, {
-          size: 'invisible',
-          callback: () => { console.log("Recaptcha verified"); },
-          'expired-callback': () => { toast.error("Recaptcha expired. Please try again."); },
-        });
-      } catch (error) {
-        console.error("Recaptcha initialization error:", error);
-      }
-    }
-  };
-
-  const handleSendOtp = async () => {
-    if (!formData.phoneNumber || formData.phoneNumber.length < 10) {
-      toast.error("Please enter a valid phone number");
-      return;
-    }
-    setOtpLoading(true);
-    try {
-      setupRecaptcha();
-      const appVerifier = (window as any).recaptchaVerifierShared;
-      let phoneNumber = formData.phoneNumber;
-      if (!phoneNumber.startsWith('+')) phoneNumber = `+91${phoneNumber}`;
-      const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      setConfirmationResult(result);
-      setOtpSent(true);
-      toast.success("OTP sent successfully!");
-    } catch (error: any) {
-      console.error("Error sending OTP:", error);
-      toast.error(error.message || "Failed to send OTP. Please check the number.");
-      if ((window as any).recaptchaVerifierShared) {
-        (window as any).recaptchaVerifierShared.render().then((widgetId: any) => {
-          (window as any).recaptchaVerifierShared.reset(widgetId);
-        });
-      }
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!formData.otp || formData.otp.length < 6) {
-      toast.error("Please enter a valid 6-digit OTP");
-      return;
-    }
-    if (!confirmationResult) {
-      toast.error("Please request OTP first");
-      return;
-    }
-    setOtpLoading(true);
-    try {
-      await confirmationResult.confirm(formData.otp);
-      setOtpVerified(true);
-      toast.success("Phone number verified!");
-    } catch (error: any) {
-      console.error("Error verifying OTP:", error);
-      toast.error("Invalid OTP. Please try again.");
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpVerified) {
-      toast.error("Please verify your phone number first");
-      return;
-    }
     setLoading(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/leads`, {
@@ -322,9 +246,7 @@ export default function TalkToExpertsForm({
       });
       if (response.ok) {
         toast.success("Request sent successfully! Our experts will contact you soon.");
-        setFormData({ fullName: "", email: "", phoneNumber: "", otp: "", programOfInterest: "", preferredTime: "", message: "" });
-        setOtpSent(false);
-        setOtpVerified(false);
+        setFormData({ fullName: "", email: "", phoneNumber: "", programOfInterest: "", preferredTime: "", message: "" });
       } else {
         const error = await response.json();
         toast.error(error.error || "Failed to send request. Please try again later.");
@@ -417,51 +339,12 @@ export default function TalkToExpertsForm({
                 const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
                 setFormData({ ...formData, phoneNumber: digits });
               }}
-              style={{ ...inputStyle, paddingLeft: "42px", paddingRight: "100px" }}
+              style={{ ...inputStyle, paddingLeft: "42px" }}
               required
               maxLength={10}
-              disabled={otpVerified}
             />
-            {!otpVerified && (
-              <button
-                type="button"
-                onClick={handleSendOtp}
-                disabled={otpLoading || !formData.phoneNumber}
-                style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", backgroundColor: "#9810FA", color: "#FFFFFF", padding: "4px 12px", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: 600, cursor: "pointer", opacity: (otpLoading || !formData.phoneNumber) ? 0.5 : 1, transition: "opacity 0.2s ease" }}
-                className="hover:opacity-80"
-              >
-                {otpSent ? "Resend OTP" : "Send OTP"}
-              </button>
-            )}
-            {otpVerified && <CheckCircle size={18} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#10B981" }} />}
           </div>
-          {!otpVerified && <p style={{ fontFamily: "Inter", fontSize: "12px", color: "#6B7280", marginTop: "4px" }}>We'll send an OTP to verify your phone number</p>}
         </div>
-
-        {/* OTP */}
-        {otpSent && !otpVerified && (
-          <div>
-            <label style={labelStyle}>OTP <span style={{ color: "#EF4444" }}>*</span></label>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <input
-                type="text"
-                placeholder="Enter OTP"
-                value={formData.otp}
-                onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
-                style={{ ...inputStyle, flex: 1, width: "auto" }}
-              />
-              <button
-                type="button"
-                onClick={handleVerifyOtp}
-                disabled={otpLoading}
-                style={{ padding: "12px 20px", borderRadius: "10px", backgroundColor: "#9810FA", color: "#FFFFFF", fontFamily: "Inter", fontSize: "14px", fontWeight: 600, border: "none", cursor: otpLoading ? "not-allowed" : "pointer", opacity: otpLoading ? 0.6 : 1, flexShrink: 0, transition: "opacity 0.2s ease" }}
-                className="hover:opacity-80"
-              >
-                {otpLoading ? "..." : "Verify"}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Program of Interest */}
         <CustomSelect
@@ -559,7 +442,6 @@ export default function TalkToExpertsForm({
           <a href="#" style={{ color: "#9810FA", textDecoration: "underline" }}>Privacy Policy</a>
         </p>
       </form>
-      {!isHomePage && <div id="recaptcha-container-shared" />}
     </div>
   );
 }

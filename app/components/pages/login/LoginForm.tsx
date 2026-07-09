@@ -6,6 +6,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { safeRedirect, withRedirect } from '@/app/lib/redirect';
 
 const LoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +18,7 @@ const LoginForm = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const message = searchParams.get('message');
+    const redirectTo = safeRedirect(searchParams.get('redirect'));
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
@@ -40,7 +42,7 @@ const LoginForm = () => {
                     if (data.token) {
                         localStorage.setItem('studentToken', data.token);
                     }
-                    router.push("/");
+                    router.push(redirectTo);
                 } else {
                     toast.error(data.error || "Google login failed");
                 }
@@ -90,7 +92,7 @@ const LoginForm = () => {
                 if (data.token) {
                     localStorage.setItem('studentToken', data.token);
                 }
-                router.push("/");
+                router.push(redirectTo);
             } else {
                 toast.error(data.error || "Invalid credentials");
             }
@@ -234,7 +236,7 @@ const LoginForm = () => {
 
                 {/* Footer */}
                 <p className="mt-6 text-center text-gray-600">
-                    Don't have an account? <Link href="/signup" className="font-bold text-purple-600 hover:text-purple-700 hover:underline">Sign up</Link>
+                    Don't have an account? <Link href={redirectTo === '/' ? '/signup' : withRedirect('/signup', redirectTo)} className="font-bold text-purple-600 hover:text-purple-700 hover:underline">Sign up</Link>
                 </p>
 
                 <div className="mt-8 text-center text-xs text-gray-400">

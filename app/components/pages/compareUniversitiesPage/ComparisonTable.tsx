@@ -2,7 +2,6 @@ import React from 'react';
 import { IconArrowLeft, IconStar, IconMapPin, IconCertificate, IconClock, IconCurrencyRupee, IconLayoutGrid, IconUsers, IconCheck } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { University } from './universityData';
-import TalkToCounselor from '../../talkToCounselor';
 
 interface ComparisonTableProps {
     selectedData: University[];
@@ -13,13 +12,16 @@ const ComparisonTable = ({ selectedData, onRemove }: ComparisonTableProps) => {
     const router = useRouter();
 
     const handleDetailedComparison = () => {
+        const ids = selectedData.map(u => u.id).join(',');
+        const destination = `/compareUniversities/detailed?ids=${ids}`;
+
         const token = localStorage.getItem('studentToken');
         if (!token) {
-            router.push('/login?message=comparison');
+            // Hand the destination to the login page so it can send the user back here.
+            router.push(`/login?message=comparison&redirect=${encodeURIComponent(destination)}`);
             return;
         }
-        const ids = selectedData.map(u => u.id).join(',');
-        router.push(`/compareUniversities/detailed?ids=${ids}`);
+        router.push(destination);
     };
 
     const features = [
@@ -39,6 +41,18 @@ const ComparisonTable = ({ selectedData, onRemove }: ComparisonTableProps) => {
 
     return (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#111827]">
+                    Comparison
+                </h2>
+                <button
+                    onClick={handleDetailedComparison}
+                    className="w-full sm:w-auto bg-[#803AF2] hover:bg-[#6D28D9] text-white px-6 sm:px-8 py-3 rounded-xl font-black text-sm shadow-lg shadow-purple-200 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                    View Detailed Comparison
+                </button>
+            </div>
+
             <div className="bg-[#FFFFFF] rounded-xl border border-[#E5E7EB] shadow overflow-hidden mb-12 w-full">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -108,17 +122,6 @@ const ComparisonTable = ({ selectedData, onRemove }: ComparisonTableProps) => {
                     </table>
                 </div>
             </div>
-
-            <div className="flex justify-center sm:justify-end mb-8 cursor-pointer mt-4 sm:mt-0">
-                <button
-                    onClick={handleDetailedComparison}
-                    className="w-full sm:w-auto bg-[#803AF2] hover:bg-[#6D28D9] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-sm shadow-lg shadow-purple-200 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                    View Detailed Comparison
-                </button>
-            </div>
-
-            <TalkToCounselor />
         </div>
     );
 };

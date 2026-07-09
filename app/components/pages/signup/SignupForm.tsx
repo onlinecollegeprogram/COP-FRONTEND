@@ -5,7 +5,8 @@ import { Mail, Lock, Eye, EyeOff, User, Phone, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useGoogleLogin } from '@react-oauth/google';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { safeRedirect, withRedirect } from '@/app/lib/redirect';
 
 const SignupForm = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +22,8 @@ const SignupForm = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectTo = safeRedirect(searchParams.get('redirect'));
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
@@ -44,7 +47,7 @@ const SignupForm = () => {
                     if (data.token) {
                         localStorage.setItem('studentToken', data.token);
                     }
-                    router.push("/");
+                    router.push(redirectTo);
                 } else {
                     toast.error(data.error || "Google login failed");
                 }
@@ -293,7 +296,7 @@ const SignupForm = () => {
 
                 {/* Footer */}
                 <p className="mt-8 text-center text-gray-600 font-medium">
-                    Already have an account? <Link href="/login" className="text-[#9810FA] font-bold hover:underline">Sign in</Link>
+                    Already have an account? <Link href={redirectTo === '/' ? '/login' : withRedirect('/login', redirectTo)} className="text-[#9810FA] font-bold hover:underline">Sign in</Link>
                 </p>
             </div>
         </div>

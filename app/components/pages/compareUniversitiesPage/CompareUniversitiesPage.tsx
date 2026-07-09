@@ -6,12 +6,16 @@ import HeroSection from './HeroSection';
 import UniversitySelection from './UniversitySelection';
 import ComparisonTable from './ComparisonTable';
 import StatsSection from './StatsSection';
+import TalkToCounselor from '../../talkToCounselor';
 import Footer from '../../layout/Footer';
 
 import { University } from './universityData';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+
+// Matches the rule enforced by UniversitySelection and the compare drawer.
+const MIN_TO_COMPARE = 2;
 
 export default function CompareUniversitiesPage() {
     const searchParams = useSearchParams();
@@ -112,9 +116,26 @@ export default function CompareUniversitiesPage() {
         }
         setSelectedUniversities(newList);
         localStorage.setItem('selectedToCompare', JSON.stringify(newList));
+
+        // Dropping below the minimum invalidates an open table. Collapse it so it does
+        // not spring back open by itself on the next selection — reopening is deliberate.
+        if (newList.length < MIN_TO_COMPARE) {
+            setIsTableOpen(false);
+        }
     };
 
     const selectedData = universityList.filter(u => selectedUniversities.includes(u.id));
+    const canCompare = selectedUniversities.length >= MIN_TO_COMPARE;
+
+    const handleToggleTable = () => {
+        const nextState = !isTableOpen;
+        setIsTableOpen(nextState);
+        if (nextState) {
+            setTimeout(() => {
+                tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#FDFDFF] font-['Nunito'] overflow-hidden lg:pt-7">
@@ -138,6 +159,40 @@ export default function CompareUniversitiesPage() {
 
                 <HeroSection />
 
+                <div ref={tableRef}>
+                    {isTableOpen && canCompare ? (
+                        <ComparisonTable
+                            selectedData={selectedData}
+                            onRemove={(id) => toggleUniversity(id)}
+                        />
+                    ) : (
+                        <div className="mb-8 sm:mb-12 rounded-xl border border-dashed border-[#E5E7EB] bg-white px-6 py-12 sm:py-16 text-center shadow-sm">
+                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EEF2FF] text-[#7C3AED]">
+                                <LayoutGrid size={26} strokeWidth={2} />
+                            </div>
+                            <h2 className="text-lg sm:text-xl font-extrabold text-[#111827]">
+                                Your comparison will appear here
+                            </h2>
+                            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-gray-500">
+                                {canCompare
+                                    ? `${selectedUniversities.length} universities selected. Open the table to see them side by side.`
+                                    : `Pick at least ${MIN_TO_COMPARE} universities below to compare them side by side.`}
+                            </p>
+                            <button
+                                onClick={handleToggleTable}
+                                disabled={!canCompare}
+                                className={`mx-auto mt-6 flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3 sm:py-4 text-base font-bold text-white shadow-md transition-all duration-300 ${canCompare
+                                    ? 'bg-[#803AF2] hover:bg-[#6D28D9] hover:scale-[1.01] cursor-pointer'
+                                    : 'bg-gray-300 cursor-not-allowed'
+                                    }`}
+                            >
+                                Open Comparison Table
+                                <ArrowRight size={20} strokeWidth={2.5} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#803AF2]"></div>
@@ -147,29 +202,14 @@ export default function CompareUniversitiesPage() {
                         universities={universityList}
                         selectedUniversities={selectedUniversities}
                         onToggle={toggleUniversity}
-                        onCompare={() => {
-                            const nextState = !isTableOpen;
-                            setIsTableOpen(nextState);
-                            if (nextState) {
-                                setTimeout(() => {
-                                    tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }, 100);
-                            }
-                        }}
+                        onCompare={handleToggleTable}
                         isTableOpen={isTableOpen}
                     />
                 )}
 
-                <div ref={tableRef}>
-                    {isTableOpen && selectedUniversities.length > 0 && (
-                        <ComparisonTable
-                            selectedData={selectedData}
-                            onRemove={(id) => toggleUniversity(id)}
-                        />
-                    )}
-                </div>
-
                 <StatsSection />
+
+                <TalkToCounselor />
             </div>
         </div>
     );

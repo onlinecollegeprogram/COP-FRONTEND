@@ -6,6 +6,7 @@ import SectionRenderer from "@/app/components/SectionRenderer";
 import SidebarFilters from "./SidebarFilters";
 import UniversityCard from "./UniversityCard";
 import UniversityCardSkeleton from "./UniversityCardSkeleton";
+import CompareDrawer from "@/app/components/shared/CompareDrawer";
 
 interface UniversityPageProps {
   sections: SectionContent[];
@@ -230,6 +231,12 @@ export default function UniversityPage({ sections, providers }: UniversityPagePr
 
       {/* Remaining CMS Sections */}
       {/* <SectionRenderer sections={sections.filter(s => s.sectionIndex > 0)} /> */}
+
+      <CompareDrawer
+        selectedIds={selectedToCompare}
+        universities={providers}
+        onRemove={handleToggleCompare}
+      />
     </main>
   );
 }

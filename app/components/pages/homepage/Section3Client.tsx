@@ -215,7 +215,7 @@ export default function Section3Client({ courseGroups }: Props) {
       {/* Course Cards — Mobile Icon Grid */}
       <div className="md:hidden mt-6 px-4">
         <div className="grid grid-cols-2 gap-3">
-          {activeGroup?.courses?.map((course) => (
+          {activeGroup?.courses?.slice(0, 6).map((course) => (
             <Link
               key={course._id}
               href={`/online-courses/${course.slug}`}

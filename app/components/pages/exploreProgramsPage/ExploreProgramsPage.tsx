@@ -9,6 +9,7 @@ import ProgramCard from "./ProgramCard";
 import Link from "next/link";
 import TalkToCounselor from "../../talkToCounselor";
 import CompactUniversityCard from "./CompactUniversityCard";
+import CompareDrawer from "@/app/components/shared/CompareDrawer";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getAllProviderCourses } from "@/app/lib/api";
 import { ProviderCourse } from "@/app/lib/types";
@@ -215,6 +216,18 @@ export default function ExploreProgramsPage({
   const isSpecializationView = !!selectedCourseId && !selectedSpecializationId;
   const isUniversityView = !!selectedSpecializationId;
 
+  // Unique providers behind the loaded provider-courses, for the compare drawer's labels.
+  const compareUniversities = React.useMemo(() => {
+    const byId = new Map<string, { _id: string; name: string; logo?: string }>();
+    providerCoursesList.forEach((pc) => {
+      const provider = pc.providerId as any;
+      if (provider && typeof provider === "object" && provider._id) {
+        byId.set(provider._id, provider);
+      }
+    });
+    return Array.from(byId.values());
+  }, [providerCoursesList]);
+
   const handleBack = () => {
     setSearchQuery("");
     if (selectedSpecializationId) {
@@ -413,6 +426,15 @@ export default function ExploreProgramsPage({
 
       {/* Render CMS sections if any */}
       {/* <SectionRenderer sections={sections} /> */}
+
+      {/* Only the university step of the flow exposes compare toggles */}
+      {isUniversityView && (
+        <CompareDrawer
+          selectedIds={selectedToCompare}
+          universities={compareUniversities}
+          onRemove={handleToggleCompare}
+        />
+      )}
     </main>
   );
 }

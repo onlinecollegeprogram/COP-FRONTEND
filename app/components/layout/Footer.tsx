@@ -230,7 +230,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-8">
           <div className="flex flex-col">
             <div className="mb-6">
-              <NextImage src="/logoLight.svg" alt="CollegeProgram logo" width={811} height={260} unoptimized loading="lazy" className="h-16 w-auto block -ml-3" />
+              <NextImage src="/logo-light.webp" alt="CollegeProgram logo" width={800} height={256} unoptimized loading="lazy" className="h-16 w-auto block -ml-3" />
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
               Discover a world of knowledge and opportunities

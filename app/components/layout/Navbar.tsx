@@ -390,7 +390,7 @@ export default function Navbar() {
       <div className="md:fixed md:px-7 md:py-2.5 w-full bg-[#A983F6] md:bg-transparent border-b md:border-none border-purple-400/30">
         <div className="nav-glass w-full mx-auto flex items-center justify-between px-4 h-16 md:h-[72px] text-white relative">
           <Link href="/" className="flex items-center gap-1 flex-shrink-0">
-            <NextImage src="/logoLight.svg" alt="CollegeProgram" width={811} height={260} unoptimized className="h-16 md:h-16 w-auto object-contain mt-1 md:mt-0 pt-1" priority />
+            <NextImage src="/logo-light.webp" alt="CollegeProgram" width={800} height={256} unoptimized className="h-16 md:h-16 w-auto object-contain mt-1 md:mt-0 pt-1" priority />
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -600,7 +600,7 @@ export default function Navbar() {
           {/* Header */}
           <div className="px-6 py-5 flex items-center justify-between border-b border-purple-100 bg-[#A983F6] backdrop-blur-sm sticky top-0 z-10">
             <div className="flex flex-col">
-              <NextImage src="/logoLight.svg" alt="CollegeProgram" width={811} height={260} unoptimized className="h-14 w-auto" />
+              <NextImage src="/logo-light.webp" alt="CollegeProgram" width={800} height={256} unoptimized className="h-14 w-auto" />
             </div>
             <button
               onClick={() => setIsMenuOpen(false)}

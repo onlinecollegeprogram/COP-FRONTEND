@@ -7,7 +7,7 @@ import { Toaster } from "react-hot-toast";
 import SmoothScroll from "./components/providers/SmoothScroll";
 import { JsonLd, organizationSchema, websiteSchema } from "./lib/jsonld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cop-client-nine.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://collegeprogram.in";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

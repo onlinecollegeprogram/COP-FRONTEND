@@ -8,7 +8,7 @@ import { JsonLd, courseSchema, breadcrumbSchema } from "@/app/lib/jsonld";
 export const revalidate = 300;
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://cop-client-nine.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://collegeprogram.in";
 
 export async function generateMetadata({
   params,

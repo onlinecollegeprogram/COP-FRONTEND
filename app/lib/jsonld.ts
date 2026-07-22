@@ -1,7 +1,7 @@
 import React from "react";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://cop-client-nine.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://collegeprogram.in";
 
 const absoluteUrl = (path?: string | null): string | undefined => {
   if (!path) return undefined;

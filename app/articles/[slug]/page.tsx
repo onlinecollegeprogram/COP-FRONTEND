@@ -6,7 +6,7 @@ import { getBlogBySlug } from "@/app/lib/blogs";
 export const revalidate = 300;
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://cop-client-nine.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://collegeprogram.in";
 
 interface Props {
   params: Promise<{ slug: string }>;
